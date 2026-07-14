@@ -1,10 +1,10 @@
-# E-Commerce MVP Backend
+# E-Commerce MVP
 
-Backend for a multi-brand E-Commerce MVP built with **Next.js**.
+Full stack code files for a multi-brand E-Commerce MVP built with **Next.js**.
 
 ## Overview
 
-A modular backend designed so that a single application can power multiple brands — differing only in color scheme and logo — with minimal code changes. Each vendor will
+A modular project designed so that a single application can power multiple brands — differing only in color scheme and logo — with minimal code changes. Each vendor will
 be given his own domain, and buyer needs to access that domain to check out his store.
 
 ## Features
