@@ -33,3 +33,6 @@ yarn-error.log*
 *.tsbuildinfo
 
 /src/generated/prisma
+/app/generated/prisma
+
+.env.local
