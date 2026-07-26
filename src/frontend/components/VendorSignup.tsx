@@ -2,10 +2,10 @@
 
 import { useState, useRef } from 'react';
 
-export default function VendorSignupPage() {
+export default function VendorSignup() {
     const [businessName, setBusinessName] = useState('');
     const [description, setDescription] = useState('');
-    const [logoPreview, setLogoPreview] = useState(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [logoName, setLogoName] = useState('');
     const [isDragging, setIsDragging] = useState(false);
 
@@ -13,22 +13,22 @@ export default function VendorSignupPage() {
     const [secondaryColor, setSecondaryColor] = useState('#0ea5e9');
     const [accentColor, setAccentColor] = useState('#f59e0b');
 
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    function handleFile(file) {
+    function handleFile(file: File | null | undefined) {
         if (!file) return;
         if (!file.type.startsWith('image/')) return;
         setLogoName(file.name);
         const reader = new FileReader();
-        reader.onload = (e) => setLogoPreview(e.target.result);
+        reader.onload = (e) => setLogoPreview(e.target?.result as string);
         reader.readAsDataURL(file);
     }
 
-    function handleFileChange(e) {
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         handleFile(e.target.files && e.target.files[0]);
     }
 
-    function handleDrop(e) {
+    function handleDrop(e: React.DragEvent<HTMLDivElement>) {
         e.preventDefault();
         setIsDragging(false);
         handleFile(e.dataTransfer.files && e.dataTransfer.files[0]);
@@ -40,7 +40,7 @@ export default function VendorSignupPage() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     }
 
-    function handleSubmit(e) {
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const payload = {
             businessName,
@@ -261,7 +261,17 @@ export default function VendorSignupPage() {
     );
 }
 
-function ColorField({ label, value, onChange, required }) {
+function ColorField({
+    label,
+    value,
+    onChange,
+    required,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    required?: boolean;
+}) {
     return (
         <div className="rounded-lg border border-slate-200 bg-white p-3">
             <label className="block text-xs font-medium text-slate-700">
