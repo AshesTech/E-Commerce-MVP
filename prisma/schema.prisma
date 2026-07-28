@@ -48,3 +48,11 @@ model User {
 
   createdAt     DateTime  @default(now())
 }
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+
+  createdAt DateTime  @default(now())
+}
