@@ -17,6 +17,10 @@ be given his own domain, and buyer needs to access that domain to check out his 
 
 - Next.js
 
+## Project Structure
+
+The Next.js application lives in [`frontend/`](frontend). Run all commands (`npm install`, `npm run dev`, `npx prisma ...`) from inside that directory.
+
 ## Roles
 
 | Role | Description |
