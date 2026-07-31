@@ -5,6 +5,7 @@
 
 generator client {
   provider = "prisma-client"
+<<<<<<< HEAD
   output   = "../src/generated/prisma"
 }
 
@@ -12,3 +13,48 @@ datasource db {
   provider  = "postgresql"
 
 }
+=======
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  VENDOR
+  BUYER
+}
+
+model Vendor {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String?
+  logoUrl         String?
+  colorPrimary    String
+  colorSecondary  String?
+  colorAccent     String?
+
+  ownerUserId     String   @unique
+  owner           User     @relation("VendorOwner", fields: [ownerUserId], references: [id])
+
+  staff           User[]   @relation("VendorStaff")
+
+  createdAt       DateTime @default(now())
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          UserRole
+
+  ownedVendor   Vendor?   @relation("VendorOwner")
+
+  vendorId      String?
+  vendor        Vendor?   @relation("VendorStaff", fields: [vendorId], references: [id])
+
+  createdAt     DateTime  @default(now())
+}
+>>>>>>> cbbcd1ef54f00d5cbca1dc761f16e1da9ca20fc8

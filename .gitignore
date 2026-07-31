@@ -32,10 +32,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-<<<<<<< HEAD
-/src/generated/prisma
-=======
 /app/generated/prisma
 
 .env.local
->>>>>>> origin/main
+=======
+/src/generated/prisma
+/app/generated/prisma
+
+.env.local
