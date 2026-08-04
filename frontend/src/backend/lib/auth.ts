@@ -23,3 +23,22 @@ export function getVendorIdFromRequest(request: NextRequest): string | null {
     return null;
   }
 }
+
+export function getUserIdFromRequest(request: NextRequest): string | null {
+  const token = request.cookies.get("session_token")?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+      role: string;
+    };
+
+    return decoded.userId;
+  } catch {
+    return null;
+  }
+}

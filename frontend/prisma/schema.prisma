@@ -34,6 +34,8 @@ model Vendor {
 
   products        Product[]
 
+  orders          Order[]
+
   createdAt       DateTime @default(now())
 }
 
@@ -47,7 +49,8 @@ model User {
 
   vendorId      String?
   vendor        Vendor?   @relation("VendorStaff", fields: [vendorId], references: [id])
-
+  cart          Cart?
+  orders        Order[]     @relation("BuyerOrders")
   createdAt     DateTime  @default(now())
 }
 
@@ -72,9 +75,78 @@ model Product {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
 
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([vendorId])
   @@index([categoryId])
+}
+
+enum OrderStatus {
+  PLACED
+  DISPATCHED
+  DELIVERED
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+
+  buyerId   String     @unique
+  buyer     User       @relation(fields: [buyerId], references: [id])
+
+  items     CartItem[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id])
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  quantity  Int      @default(1)
+
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  status        OrderStatus @default(PLACED)
+
+  buyerId       String
+  buyer         User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+
+  vendorId      String
+  vendor        Vendor      @relation(fields: [vendorId], references: [id])
+
+  shippingName  String
+  shippingEmail String
+  shippingAddress String
+
+  items         OrderItem[]
+
+  createdAt     DateTime    @default(now())
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id])
+
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+
+  quantity   Int
+  price      Decimal @db.Decimal(10, 2)
 }
