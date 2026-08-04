@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface Product {
     id: string;
     name: string;
     price: number;
-    description?: string;
-    inStock: boolean;
-    imageUrl?: string;
+    quantity: number;
 }
 
 interface Vendor {
@@ -34,12 +31,12 @@ export default function ProductDetailPage() {
 
                 if (productRes.ok) {
                     const productData = await productRes.json();
-                    setProduct(productData);
+                    setProduct(productData.product);
                 }
 
                 if (vendorRes.ok) {
                     const vendorData = await vendorRes.json();
-                    setVendor(vendorData);
+                    setVendor(vendorData.vendor);
                 }
             } catch (error) {
                 console.error('Failed to fetch product details:', error);
@@ -62,6 +59,7 @@ export default function ProductDetailPage() {
     }
 
     const primaryColor = vendor?.colorPrimary || '#3B82F6';
+    const inStock = product.quantity > 0;
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
@@ -71,25 +69,18 @@ export default function ProductDetailPage() {
                 </Link>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {product.imageUrl && (
-                        <div className="relative w-full h-80">
-                            <Image src={product.imageUrl} alt={product.name} fill className="object-cover rounded-lg" />
-                        </div>
-                    )}
-
                     <div className="flex flex-col justify-between">
                         <div>
                             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
                             <p className="text-2xl font-bold text-gray-900 mb-4">${product.price}</p>
-                            <p className="text-gray-600 mb-6">{product.description || 'No description available.'}</p>
                         </div>
 
                         <button
-                            disabled={!product.inStock}
+                            disabled={!inStock}
                             className="w-full py-3 rounded-lg text-white font-medium disabled:opacity-50"
                             style={{ backgroundColor: primaryColor }}
                         >
-                            {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                            {inStock ? 'Add to Cart' : 'Out of Stock'}
                         </button>
                     </div>
                 </div>

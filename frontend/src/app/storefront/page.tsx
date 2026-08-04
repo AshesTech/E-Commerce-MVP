@@ -14,8 +14,7 @@ interface Product {
     id: string;
     name: string;
     price: number;
-    inStock: boolean;
-    imageUrl?: string;
+    quantity: number;
 }
 
 export default function StorefrontPage() {
@@ -33,12 +32,12 @@ export default function StorefrontPage() {
 
                 if (vendorRes.ok) {
                     const vendorData = await vendorRes.json();
-                    setVendor(vendorData);
+                    setVendor(vendorData.vendor);
                 }
 
                 if (productsRes.ok) {
                     const productsData = await productsRes.json();
-                    setProducts(productsData);
+                    setProducts(productsData.products);
                 }
             } catch (error) {
                 console.error('Failed to fetch storefront data:', error);
@@ -74,31 +73,29 @@ export default function StorefrontPage() {
             <main className="max-w-7xl mx-auto p-6">
                 <h2 className="text-2xl font-semibold mb-6">Products</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {products.map((product) => (
-                        <div key={product.id} className="border rounded-lg bg-white p-4 shadow-sm flex flex-col justify-between">
-                            <div>
-                                {product.imageUrl && (
-                                    <div className="relative w-full h-48 mb-4">
-                                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover rounded" />
-                                    </div>
-                                )}
-                                <h3 className="font-medium text-lg">{product.name}</h3>
-                            </div>
+                    {products.map((product) => {
+                        const inStock = product.quantity > 0;
+                        return (
+                            <div key={product.id} className="border rounded-lg bg-white p-4 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <h3 className="font-medium text-lg">{product.name}</h3>
+                                </div>
 
-                            <div className="mt-4 border-t pt-4 flex items-center justify-between">
-                                <span className="text-lg font-bold text-gray-900">${product.price}</span>
-                                <Link href={`/storefront/${product.id}`}>
-                                    <button
-                                        disabled={!product.inStock}
-                                        className="px-4 py-2 rounded-lg text-white font-medium disabled:opacity-50"
-                                        style={{ backgroundColor: primaryColor }}
-                                    >
-                                        {product.inStock ? 'View Product' : 'Out of Stock'}
-                                    </button>
-                                </Link>
+                                <div className="mt-4 border-t pt-4 flex items-center justify-between">
+                                    <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                                    <Link href={`/storefront/${product.id}`}>
+                                        <button
+                                            disabled={!inStock}
+                                            className="px-4 py-2 rounded-lg text-white font-medium disabled:opacity-50"
+                                            style={{ backgroundColor: primaryColor }}
+                                        >
+                                            {inStock ? 'View Product' : 'Out of Stock'}
+                                        </button>
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </main>
         </div>
