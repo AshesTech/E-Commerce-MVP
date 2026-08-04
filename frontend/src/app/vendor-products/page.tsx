@@ -1,29 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Sample interface for Product
+// Product Interface aligned with Schema
 interface Product {
     id: string;
     name: string;
     category: string;
     price: number;
-    stock: number;
+    quantity: number;
 }
 
 export default function VendorProductsPage() {
-    const [products, setProducts] = useState<Product[]>([
-        { id: '1', name: 'Sample T-Shirt', category: 'Apparel', price: 25, stock: 10 },
-    ]);
-
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ name: '', category: '', price: '', stock: '' });
+    const [formData, setFormData] = useState({ name: '', category: '', price: '', quantity: '' });
+
+    // API Payload Unwrapping Fetch (Fix for Code Review)
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/vendor/products');
+                if (res.ok) {
+                    const data = await res.json();
+                    // Code Review Fix: Extracting unwrapped payload key 'products'
+                    setProducts(data.products || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleAddProduct = (e: React.FormEvent) => {
+    const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name || !formData.price) return;
 
@@ -32,17 +50,21 @@ export default function VendorProductsPage() {
             name: formData.name,
             category: formData.category || 'General',
             price: parseFloat(formData.price),
-            stock: parseInt(formData.stock) || 0,
+            quantity: parseInt(formData.quantity) || 0,
         };
 
         setProducts([...products, newProduct]);
-        setFormData({ name: '', category: '', price: '', stock: '' });
+        setFormData({ name: '', category: '', price: '', quantity: '' });
         setIsModalOpen(false);
     };
 
     const handleDelete = (id: string) => {
         setProducts(products.filter((p) => p.id !== id));
     };
+
+    if (loading) {
+        return <div className="p-6 text-center">Loading products...</div>;
+    }
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
@@ -67,7 +89,8 @@ export default function VendorProductsPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price ($)</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -77,7 +100,15 @@ export default function VendorProductsPage() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.price}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.quantity}</td>
+                                {/* Code Review Fix: Stock Status using quantity > 0 */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    {product.quantity > 0 ? (
+                                        <span className="text-green-600 bg-green-50 px-2 py-1 rounded">In Stock</span>
+                                    ) : (
+                                        <span className="text-red-600 bg-red-50 px-2 py-1 rounded">Out of Stock</span>
+                                    )}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
                                         onClick={() => handleDelete(product.id)}
@@ -132,11 +163,11 @@ export default function VendorProductsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Stock</label>
+                                    <label className="block text-sm font-medium text-gray-700">Quantity</label>
                                     <input
                                         type="number"
-                                        name="stock"
-                                        value={formData.stock}
+                                        name="quantity"
+                                        value={formData.quantity}
                                         onChange={handleInputChange}
                                         className="mt-1 w-full border rounded-md p-2 text-gray-800 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
