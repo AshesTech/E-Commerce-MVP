@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/backend/lib/prisma";
-import { getVendorIdFromRequest } from "@/backend/lib/auth";
+import { getUserIdFromRequest } from "@/backend/lib/auth";
 
 // POST /api/checkout - convert the buyer's cart into an order
 export async function POST(request: NextRequest) {
   try {
-    const userId = getVendorIdFromRequest(request);
+    const userId = getUserIdFromRequest(request);
 
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });

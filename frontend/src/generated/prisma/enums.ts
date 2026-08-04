@@ -18,9 +18,9 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
 export const OrderStatus = {
-  PENDING: 'PENDING',
-  CONFIRMED: 'CONFIRMED',
-  CANCELLED: 'CANCELLED'
+  PLACED: 'PLACED',
+  DISPATCHED: 'DISPATCHED',
+  DELIVERED: 'DELIVERED'
 } as const
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]

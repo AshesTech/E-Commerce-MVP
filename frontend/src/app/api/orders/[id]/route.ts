@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/backend/lib/prisma";
-import { getVendorIdFromRequest } from "@/backend/lib/auth";
+import { getUserIdFromRequest } from "@/backend/lib/auth";
 
 // GET /api/orders/[id] - view a specific order's details (only if it belongs to the logged-in buyer)
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const userId = getVendorIdFromRequest(request);
+    const userId = getUserIdFromRequest(request);
 
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });

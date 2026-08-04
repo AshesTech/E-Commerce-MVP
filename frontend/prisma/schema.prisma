@@ -86,9 +86,9 @@ model Product {
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
+  PLACED
+  DISPATCHED
+  DELIVERED
 }
 
 model Cart {
@@ -121,7 +121,7 @@ model CartItem {
 
 model Order {
   id            String      @id @default(cuid())
-  status        OrderStatus @default(PENDING)
+  status        OrderStatus @default(PLACED)
 
   buyerId       String
   buyer         User        @relation("BuyerOrders", fields: [buyerId], references: [id])

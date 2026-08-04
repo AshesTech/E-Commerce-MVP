@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/backend/lib/prisma";
-import { getVendorIdFromRequest } from "@/backend/lib/auth";
+import { getUserIdFromRequest } from "@/backend/lib/auth";
 
 // GET /api/cart - view the logged-in buyer's cart
 export async function GET(request: NextRequest) {
   try {
-    const userId = getVendorIdFromRequest(request);
-
+    const userId = getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });
     }
@@ -34,8 +33,7 @@ export async function GET(request: NextRequest) {
 // POST /api/cart - add a product to the cart (or increase quantity if already there)
 export async function POST(request: NextRequest) {
   try {
-    const userId = getVendorIdFromRequest(request);
-
+    const userId = getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });
     }

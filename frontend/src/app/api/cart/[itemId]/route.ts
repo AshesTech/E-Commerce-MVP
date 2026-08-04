@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/backend/lib/prisma";
-import { getVendorIdFromRequest } from "@/backend/lib/auth";
+import { getUserIdFromRequest } from "@/backend/lib/auth";
 
 // PUT /api/cart/[itemId] - update quantity of a cart item
 export async function PUT(
@@ -9,7 +9,7 @@ export async function PUT(
 ) {
   try {
     const { itemId } = await params;
-    const userId = getVendorIdFromRequest(request);
+    const userId = getUserIdFromRequest(request);
 
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });
@@ -51,7 +51,7 @@ export async function DELETE(
 ) {
   try {
     const { itemId } = await params;
-    const userId = getVendorIdFromRequest(request);
+    const userId = getUserIdFromRequest(request);
 
     if (!userId) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });
