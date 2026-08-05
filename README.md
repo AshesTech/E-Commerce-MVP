@@ -1,29 +1,36 @@
-# E-Commerce MVP
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Full stack code files for a multi-brand E-Commerce MVP built with **Next.js**.
+## Getting Started
 
-## Overview
+First, run the development server:
 
-A modular project designed so that a single application can power multiple brands — differing only in color scheme and logo — with minimal code changes. Each vendor will
-be given his own domain, and buyer needs to access that domain to check out his store.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- **Multi-brand support** — swap branding (colors, logo) without touching the core logic
-- **Single unified app** — serves both Admin (Vendor) and User (Buyer) roles
-- **Modular architecture** — clean separation of concerns for scalability
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Tech Stack
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-- Next.js
+## Learn More
 
-## Project Structure
+To learn more about Next.js, take a look at the following resources:
 
-The Next.js application lives in [`frontend/`](frontend). Run all commands (`npm install`, `npm run dev`, `npx prisma ...`) from inside that directory.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Roles
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-| Role | Description |
-|------|-------------|
-| Admin (Vendor) | Manages products, orders, and brand settings |
-| User (Buyer) | Browses and purchases products |
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
