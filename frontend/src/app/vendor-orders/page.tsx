@@ -13,21 +13,22 @@ interface Order {
 export default function VendorOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [dispatchError, setDispatchError] = useState<string | null>(null);
+    const [dispatchingId, setDispatchingId] = useState<string | null>(null);
 
     useEffect(() => {
-        // Mock data / fetch API placeholder
         const fetchOrders = async () => {
             try {
                 const res = await fetch('/api/vendor/orders');
+                if (!res.ok) {
+                    throw new Error(`Request failed with status ${res.status}`);
+                }
                 const data = await res.json();
                 setOrders(data.orders || []);
             } catch (error) {
                 console.error('Failed to fetch orders:', error);
-                // Fallback mock data for testing UI
-                setOrders([
-                    { id: 'ORD-101', customerName: 'Sara Ahmed', totalAmount: 2500, status: 'Pending', createdAt: '2026-08-08' },
-                    { id: 'ORD-102', customerName: 'Ali Khan', totalAmount: 1800, status: 'Dispatched', createdAt: '2026-08-07' }
-                ]);
+                setLoadError('Could not load orders right now. Please try again in a moment.');
             } finally {
                 setLoading(false);
             }
@@ -37,25 +38,30 @@ export default function VendorOrdersPage() {
     }, []);
 
     const handleDispatch = async (orderId: string) => {
-        try {
-            // Call API to mark as dispatched
-            await fetch(`/api/vendor/orders/${orderId}/dispatch`, { method: 'POST' });
+        setDispatchError(null);
+        setDispatchingId(orderId);
 
-            // Update UI state
+        try {
+            const res = await fetch(`/api/vendor/orders/${orderId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'DISPATCHED' }),
+            });
+
+            if (!res.ok) {
+                throw new Error(`Request failed with status ${res.status}`);
+            }
+
             setOrders(prev =>
                 prev.map(order =>
                     order.id === orderId ? { ...order, status: 'Dispatched' } : order
                 )
             );
-            alert(`Order ${orderId} marked as Dispatched!`);
         } catch (error) {
             console.error('Error dispatching order:', error);
-            // Local state update fallback
-            setOrders(prev =>
-                prev.map(order =>
-                    order.id === orderId ? { ...order, status: 'Dispatched' } : order
-                )
-            );
+            setDispatchError(`Could not mark order ${orderId} as dispatched. Please try again.`);
+        } finally {
+            setDispatchingId(null);
         }
     };
 
@@ -63,8 +69,18 @@ export default function VendorOrdersPage() {
         <div className="max-w-5xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Vendor Order Management</h1>
 
+            {dispatchError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3 mb-4">
+                    {dispatchError}
+                </div>
+            )}
+
             {loading ? (
                 <p>Loading orders...</p>
+            ) : loadError ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-4">
+                    {loadError}
+                </div>
             ) : (
                 <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
                     <table className="w-full text-left border-collapse">
@@ -95,9 +111,10 @@ export default function VendorOrdersPage() {
                                         {order.status === 'Pending' ? (
                                             <button
                                                 onClick={() => handleDispatch(order.id)}
-                                                className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
+                                                disabled={dispatchingId === order.id}
+                                                className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-blue-700 transition disabled:opacity-50"
                                             >
-                                                Dispatch
+                                                {dispatchingId === order.id ? 'Dispatching...' : 'Dispatch'}
                                             </button>
                                         ) : (
                                             <span className="text-sm text-gray-500 font-medium">Dispatched</span>

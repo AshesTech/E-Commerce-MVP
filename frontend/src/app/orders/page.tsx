@@ -20,32 +20,20 @@ interface Order {
 export default function OrderHistoryPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchOrderHistory = async () => {
             try {
-                const res = await fetch('/api/user/orders');
+                const res = await fetch('/api/buyer/orders');
+                if (!res.ok) {
+                    throw new Error(`Request failed with status ${res.status}`);
+                }
                 const data = await res.json();
                 setOrders(data.orders || []);
             } catch (error) {
                 console.error('Failed to load order history:', error);
-                // Fallback mock data for testing UI
-                setOrders([
-                    {
-                        id: 'ORD-101',
-                        date: '2026-08-08',
-                        totalAmount: 2500,
-                        status: 'Dispatched',
-                        items: [{ id: 'p1', title: 'Wireless Headphones', price: 2500, quantity: 1 }]
-                    },
-                    {
-                        id: 'ORD-099',
-                        date: '2026-08-01',
-                        totalAmount: 1200,
-                        status: 'Delivered',
-                        items: [{ id: 'p2', title: 'USB-C Cable', price: 600, quantity: 2 }]
-                    }
-                ]);
+                setError('Could not load your order history right now. Please try again in a moment.');
             } finally {
                 setLoading(false);
             }
@@ -60,6 +48,10 @@ export default function OrderHistoryPage() {
 
             {loading ? (
                 <p>Loading order history...</p>
+            ) : error ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-4">
+                    {error}
+                </div>
             ) : orders.length === 0 ? (
                 <p className="text-gray-500">No previous orders found.</p>
             ) : (
