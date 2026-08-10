@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface CartItem {
@@ -12,40 +12,86 @@ interface CartItem {
 }
 
 export default function CartPage() {
-    // Temporary initial state - Baad mein GET /api/cart se integrate hoga
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        {
-            id: '1',
-            productId: 'p1',
-            name: 'Sample Product 1',
-            price: 1200,
-            quantity: 2,
-        },
-        {
-            id: '2',
-            productId: 'p2',
-            name: 'Sample Product 2',
-            price: 2500,
-            quantity: 1,
-        },
-    ]);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Quantity Update Handler
-    const handleQuantityChange = (id: string, delta: number) => {
-        setCartItems((prev) =>
-            prev.map((item) => {
-                if (item.id === id) {
-                    const newQty = item.quantity + delta;
-                    return newQty > 0 ? { ...item, quantity: newQty } : item;
+    useEffect(() => {
+        async function fetchCart() {
+            try {
+                const res = await fetch('/api/cart');
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // TODO(verify): we don't yet know the exact response shape from the
+                    // backend for GET /api/cart, so this logs the raw response and tries
+                    // a few likely shapes. Check the browser console after loading this
+                    // page, compare to what actually came back, and let Claude know the
+                    // real field names so this can be tightened up.
+                    console.log('Raw /api/cart response:', data);
+
+                    const items = data?.items ?? data?.cart?.items ?? (Array.isArray(data) ? data : []);
+                    if (!items.length && data) {
+                        console.warn('Could not find a cart items array in the response above — check the shape and update fetchCart().');
+                    }
+                    setCartItems(items);
                 }
-                return item;
-            })
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchCart();
+    }, []);
+
+    // Quantity Update Handler — calls PUT /api/cart/items/:id, body: { quantity }
+    const handleQuantityChange = async (id: string, delta: number) => {
+        const item = cartItems.find((i) => i.id === id);
+        if (!item) return;
+        const newQty = item.quantity + delta;
+        if (newQty <= 0) return;
+
+        // optimistic update
+        setCartItems((prev) =>
+            prev.map((i) => (i.id === id ? { ...i, quantity: newQty } : i))
         );
+
+        try {
+            const res = await fetch(`/api/cart/items/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: newQty }),
+            });
+            if (!res.ok) {
+                console.error('Failed to update quantity, reverting.');
+                setCartItems((prev) =>
+                    prev.map((i) => (i.id === id ? { ...i, quantity: item.quantity } : i))
+                );
+            }
+        } catch (error) {
+            console.error('Quantity update error:', error);
+            setCartItems((prev) =>
+                prev.map((i) => (i.id === id ? { ...i, quantity: item.quantity } : i))
+            );
+        }
     };
 
-    // Remove Item Handler
-    const handleRemoveItem = (id: string) => {
+    // Remove Item Handler — calls DELETE /api/cart/items/:id
+    const handleRemoveItem = async (id: string) => {
+        const previousItems = cartItems;
         setCartItems((prev) => prev.filter((item) => item.id !== id));
+
+        try {
+            const res = await fetch(`/api/cart/items/${id}`, { method: 'DELETE' });
+            if (!res.ok) {
+                console.error('Failed to remove item, reverting.');
+                setCartItems(previousItems);
+            }
+        } catch (error) {
+            console.error('Remove item error:', error);
+            setCartItems(previousItems);
+        }
     };
 
     // Subtotal Calculation
@@ -53,6 +99,10 @@ export default function CartPage() {
         (acc, item) => acc + item.price * item.quantity,
         0
     );
+
+    if (loading) {
+        return <div className="p-8 text-center">Loading your cart...</div>;
+    }
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
