@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/backend/lib/prisma";
 import { getUserIdFromRequest } from "@/backend/lib/auth";
+import { sendEmail } from "@/backend/lib/mailer";
 
 // POST /api/checkout - convert the buyer's cart into an order
 export async function POST(request: NextRequest) {
@@ -60,11 +61,38 @@ export async function POST(request: NextRequest) {
       },
       include: {
         items: { include: { product: true } },
+        vendor: true,
       },
     });
 
     // Clear the cart after successful checkout
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+    // Email the vendor with the order details
+    const vendorOwner = await prisma.user.findUnique({
+      where: { id: order.vendor.ownerUserId },
+    });
+
+    if (vendorOwner) {
+      const itemsList = order.items
+        .map(
+          (item) =>
+            `<li>${item.product.name} - Qty: ${item.quantity} - Rs. ${item.price}</li>`
+        )
+        .join("");
+
+      await sendEmail({
+        to: vendorOwner.email,
+        subject: `New Order Received - ${order.vendor.name}`,
+        html: `
+          <h2>You have a new order!</h2>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Shipping to:</strong> ${shippingName}, ${shippingAddress}</p>
+          <p><strong>Items:</strong></p>
+          <ul>${itemsList}</ul>
+        `,
+      });
+    }
 
     return NextResponse.json(
       { message: "Order placed successfully", order },
