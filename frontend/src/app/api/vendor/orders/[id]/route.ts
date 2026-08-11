@@ -49,15 +49,19 @@ export async function PATCH(
     });
 
     // Email the buyer about the status update
-    await sendEmail({
-      to: updatedOrder.shippingEmail,
-      subject: `Your order status has changed - ${updatedOrder.vendor.name}`,
-      html: `
-        <h2>Order Update</h2>
-        <p><strong>Order ID:</strong> ${updatedOrder.id}</p>
-        <p>Your order status is now: <strong>${status}</strong></p>
-      `,
-    });
+    try {
+      await sendEmail({
+        to: updatedOrder.shippingEmail,
+        subject: `Your order status has changed - ${updatedOrder.vendor.name}`,
+        html: `
+          <h2>Order Update</h2>
+          <p><strong>Order ID:</strong> ${updatedOrder.id}</p>
+          <p>Your order status is now: <strong>${status}</strong></p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send buyer status update email:", emailError);
+    }
 
     return NextResponse.json({
       message: "Order status updated",

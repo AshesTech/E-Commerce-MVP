@@ -81,17 +81,21 @@ export async function POST(request: NextRequest) {
         )
         .join("");
 
-      await sendEmail({
-        to: vendorOwner.email,
-        subject: `New Order Received - ${order.vendor.name}`,
-        html: `
-          <h2>You have a new order!</h2>
-          <p><strong>Order ID:</strong> ${order.id}</p>
-          <p><strong>Shipping to:</strong> ${shippingName}, ${shippingAddress}</p>
-          <p><strong>Items:</strong></p>
-          <ul>${itemsList}</ul>
-        `,
-      });
+      try {
+        await sendEmail({
+          to: vendorOwner.email,
+          subject: `New Order Received - ${order.vendor.name}`,
+          html: `
+            <h2>You have a new order!</h2>
+            <p><strong>Order ID:</strong> ${order.id}</p>
+            <p><strong>Shipping to:</strong> ${shippingName}, ${shippingAddress}</p>
+            <p><strong>Items:</strong></p>
+            <ul>${itemsList}</ul>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Failed to send vendor order email:", emailError);
+      }
     }
 
     return NextResponse.json(
