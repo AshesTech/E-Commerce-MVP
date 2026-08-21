@@ -4,16 +4,17 @@ import { useState, useEffect } from 'react';
 
 interface OrderItem {
     id: string;
-    title: string;
-    price: number;
     quantity: number;
+    priceAtPurchase: number;
+    product: {
+        name: string;
+    };
 }
 
 interface Order {
     id: string;
-    date: string;
-    totalAmount: number;
-    status: 'Pending' | 'Dispatched' | 'Delivered';
+    createdAt: string;
+    status: 'PLACED' | 'DISPATCHED' | 'DELIVERED';
     items: OrderItem[];
 }
 
@@ -42,6 +43,15 @@ export default function OrderHistoryPage() {
         fetchOrderHistory();
     }, []);
 
+    const getOrderTotal = (order: Order) =>
+        order.items.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
+
+    const statusStyles: Record<Order['status'], string> = {
+        PLACED: 'bg-yellow-100 text-yellow-800',
+        DISPATCHED: 'bg-blue-100 text-blue-800',
+        DELIVERED: 'bg-green-100 text-green-800',
+    };
+
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">My Order History</h1>
@@ -61,26 +71,23 @@ export default function OrderHistoryPage() {
                             <div className="flex flex-col sm:flex-row justify-between border-b pb-3 gap-2">
                                 <div>
                                     <p className="font-bold text-lg">Order #{order.id}</p>
-                                    <p className="text-sm text-gray-500">Placed on {order.date}</p>
+                                    <p className="text-sm text-gray-500">
+                                        Placed on {new Date(order.createdAt).toLocaleDateString()}
+                                    </p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${order.status === 'Dispatched'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : order.status === 'Delivered'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[order.status]}`}>
                                         {order.status}
                                     </span>
-                                    <span className="font-bold">Rs. {order.totalAmount}</span>
+                                    <span className="font-bold">Rs. {getOrderTotal(order)}</span>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 {order.items.map((item) => (
                                     <div key={item.id} className="flex justify-between text-sm">
-                                        <span>{item.title} (x{item.quantity})</span>
-                                        <span>Rs. {item.price * item.quantity}</span>
+                                        <span>{item.product.name} (x{item.quantity})</span>
+                                        <span>Rs. {item.priceAtPurchase * item.quantity}</span>
                                     </div>
                                 ))}
                             </div>

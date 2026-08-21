@@ -2,12 +2,25 @@
 
 import { useState, useEffect } from 'react';
 
+interface OrderItem {
+    id: string;
+    quantity: number;
+    priceAtPurchase: number;
+    product: {
+        name: string;
+    };
+}
+
 interface Order {
     id: string;
-    customerName: string;
-    totalAmount: number;
-    status: 'Pending' | 'Dispatched' | 'Delivered';
+    // TODO(verify): assuming the Order model has a `shippingName` scalar column
+    // (based on the checkout body using shippingName/shippingEmail/shippingAddress).
+    // Check the console log below after loading this page — if the real field
+    // name differs, update this interface and the JSX reference accordingly.
+    shippingName?: string;
+    status: 'PLACED' | 'DISPATCHED' | 'DELIVERED';
     createdAt: string;
+    items: OrderItem[];
 }
 
 export default function VendorOrdersPage() {
@@ -25,6 +38,7 @@ export default function VendorOrdersPage() {
                     throw new Error(`Request failed with status ${res.status}`);
                 }
                 const data = await res.json();
+                console.log('Raw /api/vendor/orders response:', data);
                 setOrders(data.orders || []);
             } catch (error) {
                 console.error('Failed to fetch orders:', error);
@@ -36,6 +50,9 @@ export default function VendorOrdersPage() {
 
         fetchOrders();
     }, []);
+
+    const getOrderTotal = (order: Order) =>
+        order.items.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
 
     const handleDispatch = async (orderId: string) => {
         setDispatchError(null);
@@ -54,7 +71,7 @@ export default function VendorOrdersPage() {
 
             setOrders(prev =>
                 prev.map(order =>
-                    order.id === orderId ? { ...order, status: 'Dispatched' } : order
+                    order.id === orderId ? { ...order, status: 'DISPATCHED' } : order
                 )
             );
         } catch (error) {
@@ -97,10 +114,10 @@ export default function VendorOrdersPage() {
                             {orders.map((order) => (
                                 <tr key={order.id} className="border-b hover:bg-gray-50">
                                     <td className="p-4 font-medium">{order.id}</td>
-                                    <td className="p-4">{order.customerName}</td>
-                                    <td className="p-4">Rs. {order.totalAmount}</td>
+                                    <td className="p-4">{order.shippingName || '—'}</td>
+                                    <td className="p-4">Rs. {getOrderTotal(order)}</td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'Dispatched'
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'DISPATCHED' || order.status === 'DELIVERED'
                                             ? 'bg-blue-100 text-blue-800'
                                             : 'bg-yellow-100 text-yellow-800'
                                             }`}>
@@ -108,7 +125,7 @@ export default function VendorOrdersPage() {
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        {order.status === 'Pending' ? (
+                                        {order.status === 'PLACED' ? (
                                             <button
                                                 onClick={() => handleDispatch(order.id)}
                                                 disabled={dispatchingId === order.id}
@@ -117,7 +134,7 @@ export default function VendorOrdersPage() {
                                                 {dispatchingId === order.id ? 'Dispatching...' : 'Dispatch'}
                                             </button>
                                         ) : (
-                                            <span className="text-sm text-gray-500 font-medium">Dispatched</span>
+                                            <span className="text-sm text-gray-500 font-medium">{order.status === 'DELIVERED' ? 'Delivered' : 'Dispatched'}</span>
                                         )}
                                     </td>
                                 </tr>
