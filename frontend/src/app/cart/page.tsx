@@ -6,9 +6,11 @@ import Link from 'next/link';
 interface CartItem {
     id: string;
     productId: string;
-    name: string;
-    price: number;
     quantity: number;
+    product: {
+        name: string;
+        price: number;
+    };
 }
 
 export default function CartPage() {
@@ -21,19 +23,7 @@ export default function CartPage() {
                 const res = await fetch('/api/cart');
                 if (res.ok) {
                     const data = await res.json();
-
-                    // TODO(verify): we don't yet know the exact response shape from the
-                    // backend for GET /api/cart, so this logs the raw response and tries
-                    // a few likely shapes. Check the browser console after loading this
-                    // page, compare to what actually came back, and let Claude know the
-                    // real field names so this can be tightened up.
-                    console.log('Raw /api/cart response:', data);
-
-                    const items = data?.items ?? data?.cart?.items ?? (Array.isArray(data) ? data : []);
-                    if (!items.length && data) {
-                        console.warn('Could not find a cart items array in the response above — check the shape and update fetchCart().');
-                    }
-                    setCartItems(items);
+                    setCartItems(data.cart?.items || []);
                 }
             } catch (error) {
                 console.error('Failed to fetch cart:', error);
@@ -45,7 +35,7 @@ export default function CartPage() {
         fetchCart();
     }, []);
 
-    // Quantity Update Handler — calls PUT /api/cart/items/:id, body: { quantity }
+    // Quantity Update Handler — calls PUT /api/cart/:id, body: { quantity }
     const handleQuantityChange = async (id: string, delta: number) => {
         const item = cartItems.find((i) => i.id === id);
         if (!item) return;
@@ -58,7 +48,7 @@ export default function CartPage() {
         );
 
         try {
-            const res = await fetch(`/api/cart/items/${id}`, {
+            const res = await fetch(`/api/cart/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantity: newQty }),
@@ -77,13 +67,13 @@ export default function CartPage() {
         }
     };
 
-    // Remove Item Handler — calls DELETE /api/cart/items/:id
+    // Remove Item Handler — calls DELETE /api/cart/:id
     const handleRemoveItem = async (id: string) => {
         const previousItems = cartItems;
         setCartItems((prev) => prev.filter((item) => item.id !== id));
 
         try {
-            const res = await fetch(`/api/cart/items/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/cart/${id}`, { method: 'DELETE' });
             if (!res.ok) {
                 console.error('Failed to remove item, reverting.');
                 setCartItems(previousItems);
@@ -96,7 +86,7 @@ export default function CartPage() {
 
     // Subtotal Calculation
     const subtotal = cartItems.reduce(
-        (acc, item) => acc + item.price * item.quantity,
+        (acc, item) => acc + item.product.price * item.quantity,
         0
     );
 
@@ -128,9 +118,9 @@ export default function CartPage() {
                                 className="flex items-center justify-between border p-4 rounded-lg shadow-sm"
                             >
                                 <div>
-                                    <h3 className="font-semibold text-lg">{item.name}</h3>
+                                    <h3 className="font-semibold text-lg">{item.product.name}</h3>
                                     <p className="text-gray-600">
-                                        Rs. {item.price.toLocaleString()}
+                                        Rs. {item.product.price.toLocaleString()}
                                     </p>
                                 </div>
 
