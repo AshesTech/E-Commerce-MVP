@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 interface OrderItem {
     id: string;
     quantity: number;
-    priceAtPurchase: number;
+    price: number;
     product: {
         name: string;
     };
@@ -44,7 +44,7 @@ export default function OrderHistoryPage() {
     }, []);
 
     const getOrderTotal = (order: Order) =>
-        order.items.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
+        order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const statusStyles: Record<Order['status'], string> = {
         PLACED: 'bg-yellow-100 text-yellow-800',
@@ -87,7 +87,7 @@ export default function OrderHistoryPage() {
                                 {order.items.map((item) => (
                                     <div key={item.id} className="flex justify-between text-sm">
                                         <span>{item.product.name} (x{item.quantity})</span>
-                                        <span>Rs. {item.priceAtPurchase * item.quantity}</span>
+                                        <span>Rs. {item.price * item.quantity}</span>
                                     </div>
                                 ))}
                             </div>

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 interface OrderItem {
     id: string;
     quantity: number;
-    priceAtPurchase: number;
+    price: number;
     product: {
         name: string;
     };
@@ -13,10 +13,6 @@ interface OrderItem {
 
 interface Order {
     id: string;
-    // TODO(verify): assuming the Order model has a `shippingName` scalar column
-    // (based on the checkout body using shippingName/shippingEmail/shippingAddress).
-    // Check the console log below after loading this page — if the real field
-    // name differs, update this interface and the JSX reference accordingly.
     shippingName?: string;
     status: 'PLACED' | 'DISPATCHED' | 'DELIVERED';
     createdAt: string;
@@ -38,7 +34,6 @@ export default function VendorOrdersPage() {
                     throw new Error(`Request failed with status ${res.status}`);
                 }
                 const data = await res.json();
-                console.log('Raw /api/vendor/orders response:', data);
                 setOrders(data.orders || []);
             } catch (error) {
                 console.error('Failed to fetch orders:', error);
@@ -52,7 +47,7 @@ export default function VendorOrdersPage() {
     }, []);
 
     const getOrderTotal = (order: Order) =>
-        order.items.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
+        order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const handleDispatch = async (orderId: string) => {
         setDispatchError(null);
