@@ -12,29 +12,42 @@ export default function CheckoutPage() {
         phone: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setErrorMessage(null);
 
         try {
             const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    shippingName: formData.name,
+                    shippingEmail: formData.email,
+                    shippingAddress: formData.address,
+                }),
             });
 
             if (res.ok) {
                 alert('Order placed successfully via Cash on Delivery!');
                 router.push('/storefront');
             } else {
-                alert('Order submitted successfully!');
-                router.push('/');
+                let message = 'Something went wrong while placing your order. Please try again.';
+                try {
+                    const errorData = await res.json();
+                    if (errorData?.message) {
+                        message = errorData.message;
+                    }
+                } catch {
+                    // response wasn't JSON, fall back to the generic message
+                }
+                setErrorMessage(message);
             }
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Order placed successfully!');
-            router.push('/');
+            setErrorMessage('Could not reach the server. Please check your connection and try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -47,6 +60,12 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <form onSubmit={handleSubmit} className="md:col-span-2 space-y-4 border p-6 rounded-lg shadow-sm bg-white">
                     <h2 className="text-xl font-semibold mb-4 border-b pb-2">Shipping Information</h2>
+
+                    {errorMessage && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
+                            {errorMessage}
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Full Name</label>
